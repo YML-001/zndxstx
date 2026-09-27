@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>运营指挥总览 · 数据大屏</title>
+<style>/* ===== 数据大屏样式基座 · 取值来自 Figma「分管领导-数据大屏」（设计稿 3840×2160，按 1920×1080 布局后等比缩放） ===== */
+:root{
+  --s-bg:#021F45; --s-bg2:#01142E; --s-panel:#03234F; --s-panel2:#052B60;
+  --s-line:#0B3B7E; --s-line2:#1155B0;
+  --s-main:#00C6FF; --s-cyan:#22E0E8; --s-blue:#3D8BFF; --s-green:#2BE08B;
+  --s-orange:#FFA53C; --s-pink:#FF5C9B; --s-yellow:#FFD84D; --s-red:#FF4D6A; --s-violet:#9B7CFF;
+  --s-t:#EAF4FF; --s-t2:#9FC2E8; --s-t3:#5F86B4;
+  --font:"OPPOSans","PingFang SC","HarmonyOS Sans SC",sans-serif;
+  --num:"DIN Alternate","Arial Narrow",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#01102A}
+body{font-family:var(--font);color:var(--s-t);-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+ul{margin:0;padding:0;list-style:none}
+h1,h2,h3{margin:0;font-weight:400}
+.num{font-family:var(--num);font-weight:700;letter-spacing:.5px}
+.ico{display:inline-flex;width:20px;height:20px;flex:none;align-items:center;justify-content:center}
+.ico svg{width:100%;height:100%;display:block}
+
+/* 舞台：1920×1080 等比缩放居中 */
+#stage{position:fixed;left:50%;top:50%;width:1920px;height:1080px;transform-origin:center center;
+  background:radial-gradient(1400px 700px at 50% -10%,#0A3D80 0%,#021F45 55%,#01142E 100%);
+  display:flex;flex-direction:column;overflow:hidden}
+#stage::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(0,198,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(0,198,255,.045) 1px,transparent 1px);
+  background-size:60px 60px}
+
+/* 顶部 */
+.stop{height:76px;flex:none;position:relative;display:flex;align-items:center;gap:14px;padding:0 20px;
+  background:linear-gradient(180deg,#03224F 0%,rgba(2,24,52,.2) 100%);border-bottom:1px solid rgba(17,85,176,.7)}
+.stop::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;
+  background:linear-gradient(90deg,transparent,rgba(0,198,255,.85),transparent)}
+.stop .l,.stop .r{flex:none;display:flex;align-items:center;gap:10px;font-size:14px;color:var(--s-t2)}
+.stop .ttl{flex:1;min-width:0;text-align:center;overflow:hidden}
+.stop h1{font-size:28px;letter-spacing:5px;line-height:34px;white-space:nowrap;
+  background:linear-gradient(180deg,#FFFFFF 30%,#7FD8FF 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 0 28px rgba(0,198,255,.35)}
+.stop .en{margin-top:2px;font-size:10px;letter-spacing:3px;color:rgba(127,216,255,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stop .r .tm{display:flex;flex-direction:column;align-items:flex-end;line-height:1.25}
+.stop .r .clock{font-family:var(--num);font-size:22px;color:#fff;letter-spacing:1px}
+.stop .r .date{font-size:11px;color:var(--s-t3);white-space:nowrap}
+.sbtn{height:32px;padding:0 12px;border-radius:4px;border:1px solid rgba(17,85,176,.9);background:rgba(5,43,96,.7);
+  font-size:13px;color:var(--s-t2);display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.sbtn:hover,.sbtn.on{border-color:var(--s-main);color:#fff;background:rgba(0,198,255,.16)}
+button.sbtn{font-family:var(--font);cursor:pointer}
+.sloop{position:absolute;left:0;right:0;top:76px;height:2px;background:rgba(17,85,176,.35);z-index:5}
+.sloop i{display:block;height:100%;width:0;background:linear-gradient(90deg,#00C6FF,#2BE08B);transition:width 1s linear}
+.sflash{position:absolute;left:50%;top:96px;transform:translate(-50%,-10px);opacity:0;padding:10px 18px;border-radius:6px;font-size:14px;color:#fff;
+  background:rgba(4,36,79,.92);border:1px solid var(--s-main);box-shadow:0 0 24px rgba(0,198,255,.35);transition:.25s;z-index:20;pointer-events:none}
+.sflash.show{opacity:1;transform:translate(-50%,0)}
+
+/* 异形 Tab 导航：左右两簇，中间留给标题 */
+.stabs{flex:none;display:flex;gap:8px}
+.stabs a{height:38px;min-width:124px;padding:0 12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  font-size:13.5px;white-space:nowrap;color:var(--s-t2);background:linear-gradient(180deg,rgba(11,59,126,.55),rgba(3,35,79,.85));
+  border:1px solid rgba(17,85,176,.85);clip-path:polygon(12px 0,100% 0,calc(100% - 12px) 100%,0 100%)}
+.stabs a.on{color:#fff;background:linear-gradient(180deg,rgba(0,198,255,.35),rgba(0,110,190,.5));border-color:var(--s-main);
+  box-shadow:0 0 18px rgba(0,198,255,.35) inset}
+.stabs a:hover{color:#fff}
+
+/* 主体网格 */
+.sbody{flex:1;min-height:0;padding:14px 20px 18px;display:grid;gap:14px}
+.sbody.g343{grid-template-columns:420px 1fr 420px}
+.sbody.g442{grid-template-columns:430px 1fr 430px}
+.scol{display:grid;gap:14px;min-height:0}
+.scol.r3{grid-template-rows:repeat(3,1fr)}
+.scol.r2{grid-template-rows:repeat(2,1fr)}
+.scol.r2a{grid-template-rows:1.15fr 1fr}
+.scol.r3a{grid-template-rows:1fr 1.25fr 1fr}
+.scol.r3b{grid-template-rows:.8fr 1.5fr 1fr}
+
+/* 面板 */
+.sp{position:relative;background:linear-gradient(180deg,rgba(5,43,96,.62),rgba(3,29,66,.82));
+  border:1px solid rgba(17,85,176,.6);border-radius:4px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.sp::before,.sp::after{content:"";position:absolute;width:12px;height:12px;border:2px solid var(--s-main);opacity:.85}
+.sp::before{left:-1px;top:-1px;border-right:0;border-bottom:0}
+.sp::after{right:-1px;bottom:-1px;border-left:0;border-top:0}
+.sp>.hd{height:42px;flex:none;padding:0 14px;display:flex;align-items:center;gap:8px;
+  background:linear-gradient(90deg,rgba(11,59,126,.9),rgba(5,43,96,.1));border-bottom:1px solid rgba(17,85,176,.5)}
+.sp>.hd .ico{width:18px;height:18px;color:var(--s-main)}
+.sp>.hd h3{font-size:17px;letter-spacing:1px;color:#E9F6FF}
+.sp>.hd .x{margin-left:auto;font-size:12px;color:var(--s-t3);display:inline-flex;align-items:center;gap:6px}
+.sp>.bd{flex:1;min-height:0;padding:12px 14px;display:flex;flex-direction:column;gap:10px;overflow:hidden}
+
+/* KPI 条 */
+.skpis{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;flex:none}
+.skpi{height:104px;border-radius:4px;border:1px solid rgba(17,85,176,.6);
+  background:linear-gradient(135deg,rgba(9,54,110,.85),rgba(3,29,66,.7));display:flex;align-items:center;gap:14px;padding:0 16px;position:relative;overflow:hidden}
+.skpi::after{content:"";position:absolute;right:-24px;top:-24px;width:90px;height:90px;border-radius:50%;background:rgba(0,198,255,.08)}
+.skpi .bx{width:52px;height:52px;border-radius:12px;display:grid;place-items:center;flex:none;background:rgba(0,198,255,.14);color:var(--s-main)}
+.skpi .bx .ico{width:28px;height:28px}
+.skpi .c{min-width:0;display:flex;flex-direction:column;gap:2px}
+.skpi .c .t{font-size:14px;color:var(--s-t2);white-space:nowrap}
+.skpi .c .v{font-family:var(--num);font-weight:700;font-size:32px;line-height:38px;color:#fff;text-shadow:0 0 16px rgba(0,198,255,.5)}
+.skpi .c .v small{font-size:14px;margin-left:3px;color:var(--s-t2);font-family:var(--font);font-weight:400}
+.skpi .c .d{font-size:12px;color:var(--s-t3);white-space:nowrap}
+.skpi.o .bx{background:rgba(255,165,60,.16);color:var(--s-orange)} .skpi.o .c .v{text-shadow:0 0 16px rgba(255,165,60,.45)}
+.skpi.g .bx{background:rgba(43,224,139,.16);color:var(--s-green)} .skpi.g .c .v{text-shadow:0 0 16px rgba(43,224,139,.4)}
+.skpi.p .bx{background:rgba(255,92,155,.16);color:var(--s-pink)}  .skpi.p .c .v{text-shadow:0 0 16px rgba(255,92,155,.4)}
+.skpi.y .bx{background:rgba(255,216,77,.16);color:var(--s-yellow)}.skpi.y .c .v{text-shadow:0 0 16px rgba(255,216,77,.4)}
+.skpi.r .bx{background:rgba(255,77,106,.16);color:var(--s-red)}   .skpi.r .c .v{text-shadow:0 0 16px rgba(255,77,106,.4)}
+
+/* 进度条列表 */
+.sbars{display:flex;flex-direction:column;gap:7px;overflow:hidden;flex:1;justify-content:space-evenly}
+.sbar{display:flex;align-items:center;gap:10px;font-size:13px;height:22px;flex:none}
+.sbar .no{width:22px;height:22px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:12px;
+  background:rgba(0,198,255,.16);color:var(--s-main);font-family:var(--num)}
+.sbar .no.t1{background:rgba(255,216,77,.2);color:var(--s-yellow)}
+.sbar .no.t2{background:rgba(159,194,232,.2);color:#CFE2F6}
+.sbar .no.t3{background:rgba(255,165,60,.2);color:var(--s-orange)}
+.sbar .n{width:112px;flex:none;color:var(--s-t2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sbar .tr{flex:1;height:9px;border-radius:5px;background:rgba(11,59,126,.7);overflow:hidden}
+.sbar .tr i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,#0091FF,#00E0FF);box-shadow:0 0 10px rgba(0,198,255,.5)}
+.sbar .tr i.g{background:linear-gradient(90deg,#11A868,#2BE08B)}
+.sbar .tr i.o{background:linear-gradient(90deg,#D9740F,#FFA53C)}
+.sbar .tr i.r{background:linear-gradient(90deg,#C42341,#FF4D6A)}
+.sbar .tr i.v{background:linear-gradient(90deg,#6A4BD8,#9B7CFF)}
+.sbar .v{width:62px;text-align:right;font-family:var(--num);color:#fff;flex:none}
+
+/* 表格 */
+.stbl{width:100%;font-size:13px;border-collapse:collapse}
+.stbl th{height:30px;background:rgba(11,59,126,.55);color:#BFDCF7;font-weight:400;text-align:left;padding:0 10px;white-space:nowrap}
+.stbl td{height:29px;padding:0 10px;color:var(--s-t2);border-bottom:1px solid rgba(17,85,176,.28);white-space:nowrap}
+.stbl tbody tr:hover td{background:rgba(0,198,255,.07)}
+.stbl .n{text-align:right;font-family:var(--num);color:#fff}
+.stag{height:21px;padding:0 8px;border-radius:3px;font-size:12px;line-height:21px;display:inline-block}
+.sg-b{background:rgba(0,198,255,.16);color:#6FE0FF}
+.sg-g{background:rgba(43,224,139,.16);color:#57ECAB}
+.sg-o{background:rgba(255,165,60,.16);color:#FFC077}
+.sg-r{background:rgba(255,77,106,.18);color:#FF8097}
+.sg-y{background:rgba(255,216,77,.16);color:#FFE384}
+.sg-v{background:rgba(155,124,255,.18);color:#BDA8FF}
+
+/* 滚动流水 */
+.sflow{display:flex;flex-direction:column;gap:6px;overflow:hidden;flex:1;justify-content:space-evenly}
+.sfi{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--s-t2);white-space:nowrap;height:22px;flex:none}
+.sfi .tm{font-family:var(--num);color:var(--s-t3);flex:none}
+.sfi .dot{width:7px;height:7px;border-radius:50%;background:var(--s-main);flex:none;box-shadow:0 0 8px var(--s-main)}
+.sfi .tx{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+
+/* 环形 / 柱状 / 折线 */
+.sdonut{display:flex;align-items:center;gap:20px;flex:1;min-height:0}
+.sdonut .ring{width:172px;height:172px;border-radius:50%;flex:none;position:relative;display:grid;place-items:center}
+.sdonut .ring::after{content:"";position:absolute;inset:34px;border-radius:50%;background:#04244F;box-shadow:inset 0 0 22px rgba(0,198,255,.28)}
+.sdonut .ring .c{position:relative;z-index:1;text-align:center}
+.sdonut .ring .c b{display:block;font-family:var(--num);font-size:28px;color:#fff}
+.sdonut .ring .c span{font-size:12px;color:var(--s-t3)}
+.sdonut .lg{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px;font-size:13px}
+.sdonut .lg div{display:flex;align-items:center;gap:8px;color:var(--s-t2)}
+.sdonut .lg i{width:10px;height:10px;border-radius:2px;flex:none}
+.sdonut .lg b{margin-left:auto;font-family:var(--num);color:#fff}
+.scols{flex:1;min-height:0;display:flex;align-items:flex-end;gap:12px;padding-top:6px}
+.scols .b{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0;height:100%;justify-content:flex-end}
+.scols .b em{font-style:normal;font-family:var(--num);font-size:13px;color:#8FE8FF}
+.scols .b i{width:100%;max-width:30px;border-radius:3px 3px 0 0;display:block;
+  background:linear-gradient(180deg,#00E0FF,rgba(0,145,255,.2));box-shadow:0 0 14px rgba(0,198,255,.3)}
+.scols .b i.g{background:linear-gradient(180deg,#2BE08B,rgba(17,168,104,.2))}
+.scols .b span{font-size:12px;color:var(--s-t3);white-space:nowrap}
+.sline{flex:1;min-height:0;position:relative;display:flex;flex-direction:column}
+.sline svg{width:100%;flex:1;min-height:0;overflow:visible}
+.sline .xl{display:flex;justify-content:space-between;font-size:12px;color:var(--s-t3);padding-top:6px}
+.slegend{display:flex;gap:16px;font-size:12px;color:var(--s-t2);justify-content:flex-end}
+.slegend i{display:inline-block;width:12px;height:3px;border-radius:2px;margin-right:5px;vertical-align:3px}
+
+/* 中央地图 */
+.smap{flex:1;min-height:0;position:relative;display:grid;place-items:center;overflow:hidden}
+.smap .hub{width:150px;height:150px;border-radius:50%;display:grid;place-items:center;text-align:center;
+  background:radial-gradient(circle,rgba(0,198,255,.3),rgba(0,198,255,0) 68%);position:relative}
+.smap .hub b{font-size:17px;color:#fff;display:block}
+.smap .hub span{font-size:12px;color:var(--s-t2)}
+.smap .hub::before,.smap .hub::after{content:"";position:absolute;border:1px solid rgba(0,198,255,.5);border-radius:50%;animation:pulse 3s ease-out infinite}
+.smap .hub::before{inset:14px}
+.smap .hub::after{inset:14px;animation-delay:1.5s}
+@keyframes pulse{0%{transform:scale(.6);opacity:.9}100%{transform:scale(1.6);opacity:0}}
+.smap .node{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center}
+.smap .node .bx{width:56px;height:56px;border-radius:12px;display:grid;place-items:center;
+  background:linear-gradient(160deg,rgba(0,198,255,.3),rgba(5,43,96,.9));border:1px solid rgba(0,198,255,.55);color:#9FE9FF}
+.smap .node .bx .ico{width:28px;height:28px}
+.smap .node b{font-size:14px;color:#fff;font-weight:400;white-space:nowrap}
+.smap .node span{font-size:12px;color:var(--s-t3);white-space:nowrap}
+.smap svg.links{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+
+/* 预警闪烁 */
+.blink{animation:bl 1.4s ease-in-out infinite}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.35}}
+.sr-warn{color:var(--s-red)}
+.sfooternote{font-size:12px;color:var(--s-t3);text-align:right}
+</style></head>
+<body><div id="stage">
+  <header class="stop">
+    <div class="l"><a class="sbtn" href="../index.html"><span class="ico i16"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4.5L7 12l7.5 7.5"/></svg></span>原型导航</a></div>
+    <nav class="stabs"><a href="overview.html" class="on">运营指挥总览</a><a href="supply.html" class="">采购供应链监控</a><a href="inventory.html" class="">库存与出入库监控</a></nav>
+    <div class="ttl"><h1>运营指挥总览</h1><div class="en">OPERATION COMMAND OVERVIEW · 2026 年 9 月</div></div>
+    <nav class="stabs"><a href="finance.html" class="">经营 · 成本 · 财务</a><a href="quality.html" class="">质量安全监控</a><a href="warning.html" class="">预警指挥看板</a></nav>
+    <div class="r"><button class="sbtn" id="s-refresh" title="点击立即刷新，每 5 分钟自动刷新"><span class="ico i16"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20.5 3.8v4.4h-4.4"/></svg></span><span>5 分钟</span></button>
+      <button class="sbtn" id="s-loop" title="每 30 秒自动切换 6 块大屏，点击暂停 / 继续"><span class="ico i16"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="4" width="18.4" height="12.4" rx="2.2"/><path d="M8.4 20.4h7.2M12 16.4v4"/></svg></span><span>轮播 30s</span></button>
+      <button class="sbtn" id="s-full" title="全屏显示"><span class="ico i16"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="4" width="18.4" height="12.4" rx="2.2"/><path d="M8.4 20.4h7.2M12 16.4v4"/></svg></span><span>全屏</span></button>
+      <span class="tm"><span class="clock" id="clk">08:26:14</span><span class="date">2026-09-25 周五</span></span></div>
+  </header>
+  <div class="sbody g343" style="grid-template-rows:auto 1fr">
+      <div style="grid-column:1/-1"><div class="skpis"><div class="skpi ">
+    <span class="bx"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 3.6h2.6l2.4 11.6h9.8l2.2-8.4H6.6"/><circle cx="9.4" cy="19.4" r="1.7"/><circle cx="17.2" cy="19.4" r="1.7"/></svg></span></span>
+    <span class="c"><span class="t">今日采购金额</span><span class="v">12.9<small>万元</small></span><span class="d">环比 +9.3% ↑</span></span></div><div class="skpi g">
+    <span class="bx"><span class="ico"><svg viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13.775 24.375H9.375C8.6 24.375 7.9125 24.35 7.3 24.2625C4.0125 23.9 3.125 22.35 3.125 18.125V11.875C3.125 7.65 4.0125 6.1 7.3 5.7375C7.9125 5.65 8.6 5.625 9.375 5.625H13.7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M18.7734 5.625H20.6234C21.3984 5.625 22.0859 5.65 22.6984 5.7375C25.9859 6.1 26.8734 7.65 26.8734 11.875V18.125C26.8734 22.35 25.9859 23.9 22.6984 24.2625C22.0859 24.35 21.3984 24.375 20.6234 24.375H18.7734" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M18.75 2.5V27.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M10 10.625V19.375" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
+    <span class="c"><span class="t">今日验收批次</span><span class="v">31<small>批</small></span><span class="d">合格率 96.8%</span></span></div><div class="skpi y">
+    <span class="bx"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 6.4h10.4v10.2H2.8z"/><path d="M13.2 9.6h3.6l3.4 3.4v3.6h-7z"/><circle cx="6.8" cy="18.4" r="1.9"/><circle cx="17" cy="18.4" r="1.9"/></svg></span></span>
+    <span class="c"><span class="t">在途订单</span><span class="v">23<small>单</small></span><span class="d">准时率 96.2%</span></span></div><div class="skpi o">
+    <span class="bx"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.4l8 4v9.2l-8 4-8-4V7.4z"/><path d="M4 7.4l8 4 8-4M12 11.4v9.2"/></svg></span></span>
+    <span class="c"><span class="t">实时库存金额</span><span class="v">48.2<small>万元</small></span><span class="d">周转 14.8 天</span></span></div><div class="skpi r">
+    <span class="bx"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9L2.6 17.4a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9.4v4.2M12 17.2h.01"/></svg></span></span>
+    <span class="c"><span class="t">库存预警</span><span class="v">26<small>项</small></span><span class="d">临期 12 · 呆滞 8 · 低于安全 6</span></span></div><div class="skpi p">
+    <span class="bx"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.4 8.4h13.2M14.6 5.4l3 3-3 3"/><path d="M19.6 15.6H6.4M9.4 12.6l-3 3 3 3"/></svg></span></span>
+    <span class="c"><span class="t">今日调拨</span><span class="v">4.3<small>万元</small></span><span class="d">闭环 100%</span></span></div></div></div>
+
+      <div class="scol r3">
+        <div class="sp"><div class="hd"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3.6" width="6.4" height="5" rx="1.4"/><rect x="14.6" y="9.8" width="6.4" height="5" rx="1.4"/><rect x="3" y="16" width="6.4" height="5" rx="1.4"/><path d="M9.4 6.1h4a1.6 1.6 0 0 1 1.6 1.6v2.1M9.4 18.5h4a1.6 1.6 0 0 0 1.6-1.6v-2.1"/></svg></span><h3>九大流程闭环健康度</h3><span class="x">实时</span></div><div class="bd"><div class="sbars"><div class="sbar">
+    <span class="n">计划提交</span><span class="tr"><i class="" style="width:100%"></i></span><span class="v">486</span></div><div class="sbar">
+    <span class="n">审核核定</span><span class="tr"><i class="" style="width:97%"></i></span><span class="v">472</span></div><div class="sbar">
+    <span class="n">拆单派单</span><span class="tr"><i class="" style="width:94%"></i></span><span class="v">458</span></div><div class="sbar">
+    <span class="n">供应商接单</span><span class="tr"><i class="g" style="width:92%"></i></span><span class="v">446</span></div><div class="sbar">
+    <span class="n">发货在途</span><span class="tr"><i class="g" style="width:89%"></i></span><span class="v">432</span></div><div class="sbar">
+    <span class="n">到货验收</span><span class="tr"><i class="g" style="width:86%"></i></span><span class="v">418</span></div><div class="sbar">
+    <span class="n">合格入库</span><span class="tr"><i class="o" style="width:83%"></i></span><span class="v">405</span></div><div class="sbar">
+    <span class="n">出库领用</span><span class="tr"><i class="o" style="width:81%"></i></span><span class="v">392</span></div></div></div></div>
+        <div class="sp"><div class="hd"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.6V20h16V9.6"/><path d="M3.2 9.6L5 4.2h14l1.8 5.4a3 3 0 0 1-5.6 1.6 3 3 0 0 1-5.6 0 3 3 0 0 1-5.6-1.6z"/><path d="M10 20v-5h4v5"/></svg></span><h3>各食堂今日计划完成率</h3><span class="x">目标 ≥95%</span></div><div class="bd"><div class="sbars"><div class="sbar"><span class="no t1">1</span>
+    <span class="n">本部 1 食堂</span><span class="tr"><i class="" style="width:98%"></i></span><span class="v">98.2%</span></div><div class="sbar"><span class="no t2">2</span>
+    <span class="n">本部 2 食堂</span><span class="tr"><i class="" style="width:96%"></i></span><span class="v">96.4%</span></div><div class="sbar"><span class="no t3">3</span>
+    <span class="n">铁道校区食堂</span><span class="tr"><i class="g" style="width:95%"></i></span><span class="v">95.1%</span></div><div class="sbar">
+    <span class="n">湘雅新校区 1 食堂</span><span class="tr"><i class="g" style="width:94%"></i></span><span class="v">93.6%</span></div><div class="sbar">
+    <span class="n">南校区食堂</span><span class="tr"><i class="o" style="width:91%"></i></span><span class="v">91.2%</span></div><div class="sbar">
+    <span class="n">升华公寓食堂</span><span class="tr"><i class="o" style="width:89%"></i></span><span class="v">89.4%</span></div></div></div></div>
+        <div class="sp"><div class="hd"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.4 6.4h12M8.4 12h12M8.4 17.6h12"/><circle cx="4.4" cy="6.4" r="1.2"/><circle cx="4.4" cy="12" r="1.2"/><circle cx="4.4" cy="17.6" r="1.2"/></svg></span><h3>实时单据流水</h3><span class="x">最近 8 笔</span></div><div class="bd"><div class="sflow"><div class="sfi"><span class="tm">17:52</span><span class="dot"></span>
+    <span class="stag sg-o">领用出库</span><span class="tx">本部 2 食堂 / 川湘档口 ¥1,376.00</span></div><div class="sfi"><span class="tm">17:20</span><span class="dot"></span>
+    <span class="stag sg-y">结算审核</span><span class="tx">湘江粮油有限公司 ¥146,834.00</span></div><div class="sfi"><span class="tm">16:46</span><span class="dot"></span>
+    <span class="stag sg-v">调拨接收</span><span class="tx">本部 1 → 本部 2 食堂 冷冻草鱼段 5 箱</span></div><div class="sfi"><span class="tm">16:28</span><span class="dot"></span>
+    <span class="stag sg-b">价格审批</span><span class="tx">一级菜籽油 变价 ¥236 → ¥248</span></div><div class="sfi"><span class="tm">16:10</span><span class="dot"></span>
+    <span class="stag sg-r">缺货改派</span><span class="tx">绿康蔬果 → 湘雅供应链 小白菜 80kg</span></div><div class="sfi"><span class="tm">15:40</span><span class="dot"></span>
+    <span class="stag sg-b">发货登记</span><span class="tx">中鲜肉业 → 湘雅新校区 1 食堂 154 件</span></div><div class="sfi"><span class="tm">08:52</span><span class="dot"></span>
+    <span class="stag sg-g">到货验收</span><span class="tx">湘江粮油 → 主食车间 12 袋 合格</span></div></div></div></div>
+      </div>
+
+      <div class="scol r2a">
+        <div class="sp"><div class="hd"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.2s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11z"/><circle cx="12" cy="10.2" r="2.7"/></svg></span><h3>校区配送分布（收货点 / 在途）</h3><span class="x">全部物资直送下单食堂</span></div><div class="bd"><div class="smap">
+    <svg class="links" viewBox="0 0 700 420" preserveAspectRatio="none">
+      <path d="M350 210 L98.0 92.4" stroke="rgba(0,198,255,.45)" stroke-width="1.6" stroke-dasharray="5 5"/><path d="M350 210 L602.0 92.4" stroke="rgba(0,198,255,.45)" stroke-width="1.6" stroke-dasharray="5 5"/><path d="M350 210 L91.0 319.2" stroke="rgba(0,198,255,.45)" stroke-width="1.6" stroke-dasharray="5 5"/><path d="M350 210 L609.0 319.2" stroke="rgba(0,198,255,.45)" stroke-width="1.6" stroke-dasharray="5 5"/><path d="M350 210 L350.0 361.2" stroke="rgba(0,198,255,.45)" stroke-width="1.6" stroke-dasharray="5 5"/><path d="M350 210 L350.0 58.8" stroke="rgba(0,198,255,.45)" stroke-width="1.6" stroke-dasharray="5 5"/>
+    </svg>
+    <div class="hub"><div><b>直送闭环</b><span>供应商 → 食堂</span></div></div>
+    <div class="node" style="left:14%;top:22%">
+      <span class="bx"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.6V20h16V9.6"/><path d="M3.2 9.6L5 4.2h14l1.8 5.4a3 3 0 0 1-5.6 1.6 3 3 0 0 1-5.6 0 3 3 0 0 1-5.6-1.6z"/><path d="M10 20v-5h4v5"/></svg></span></span><b>本部 1 食堂</b><span>到货 62 · 在途 8</span></div><div class="node" style="left:86%;top:22%">
+      <span class="bx"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.6V20h16V9.6"/><path d="M3.2 9.6L5 4.2h14l1.8 5.4a3 3 0 0 1-5.6 1.6 3 3 0 0 1-5.6 0 3 3 0 0 1-5.6-1.6z"/><path d="M10 20v-5h4v5"/></svg></span></span><b>本部 2 食堂</b><span>到货 68 · 在途 6</span></div><div class="node" style="left:13%;top:76%">
+      <span class="bx"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.6V20h16V9.6"/><path d="M3.2 9.6L5 4.2h14l1.8 5.4a3 3 0 0 1-5.6 1.6 3 3 0 0 1-5.6 0 3 3 0 0 1-5.6-1.6z"/><path d="M10 20v-5h4v5"/></svg></span></span><b>铁道校区食堂</b><span>到货 48 · 在途 6</span></div><div class="node" style="left:87%;top:76%">
+      <span class="bx"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.6V20h16V9.6"/><path d="M3.2 9.6L5 4.2h14l1.8 5.4a3 3 0 0 1-5.6 1.6 3 3 0 0 1-5.6 0 3 3 0 0 1-5.6-1.6z"/><path d="M10 20v-5h4v5"/></svg></span></span><b>湘雅新校区 1 食堂</b><span>到货 52 · 在途 5</span></div><div class="node" style="left:50%;top:86%">
+      <span class="bx"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.6V20h16V9.6"/><path d="M3.2 9.6L5 4.2h14l1.8 5.4a3 3 0 0 1-5.6 1.6 3 3 0 0 1-5.6 0 3 3 0 0 1-5.6-1.6z"/><path d="M10 20v-5h4v5"/></svg></span></span><b>南校区食堂</b><span>到货 40 · 在途 5</span></div><div class="node" style="left:50%;top:14%">
+      <span class="bx"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 20V8.8L12 4.4l8.6 4.4V20"/><path d="M7.4 20v-7h9.2v7"/><path d="M7.4 16.4h9.2"/></svg></span></span><b>主食车间（望城）</b><span>加工 · 配送 44</span></div>
+  </div></div></div>
+        <div class="sp"><div class="hd"><span class="ico"><svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.83203 8.94922V11.6159" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M10 7.5V13.0667" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M14.168 8.94922V11.6159" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M12.5013 18.3327C16.668 18.3327 18.3346 16.666 18.3346 12.4993V7.49935C18.3346 3.33268 16.668 1.66602 12.5013 1.66602H7.5013C3.33464 1.66602 1.66797 3.33268 1.66797 7.49935V12.4993C1.66797 16.666 3.33464 18.3327 7.5013 18.3327H12.5013Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span><h3>近 7 日采购额（万元）/ 验收批次</h3><span class="x">含主食车间</span></div><div class="bd"><div class="sline"><div class="slegend"><span><i style="background:#00C6FF"></i>采购额（万元）</span><span><i style="background:#2BE08B"></i>验收批次</span></div>
+      <svg viewBox="0 0 900 200" preserveAspectRatio="none">
+      <line x1="0" y1="0" x2="900" y2="0" stroke="rgba(17,85,176,.4)" stroke-width="1"/><line x1="0" y1="50" x2="900" y2="50" stroke="rgba(17,85,176,.4)" stroke-width="1"/><line x1="0" y1="100" x2="900" y2="100" stroke="rgba(17,85,176,.4)" stroke-width="1"/><line x1="0" y1="150" x2="900" y2="150" stroke="rgba(17,85,176,.4)" stroke-width="1"/><line x1="0" y1="200" x2="900" y2="200" stroke="rgba(17,85,176,.4)" stroke-width="1"/>
+      <polyline points="0.0,148.2 150.0,164.0 300.0,178.3 450.0,141.1 600.0,144.8 750.0,150.7 900.0,146.1" fill="none" stroke="#00C6FF" stroke-width="2.5" stroke-linejoin="round"/><circle cx="0.0" cy="148.2" r="4" fill="#04244F" stroke="#00C6FF" stroke-width="2"/><circle cx="150.0" cy="164.0" r="4" fill="#04244F" stroke="#00C6FF" stroke-width="2"/><circle cx="300.0" cy="178.3" r="4" fill="#04244F" stroke="#00C6FF" stroke-width="2"/><circle cx="450.0" cy="141.1" r="4" fill="#04244F" stroke="#00C6FF" stroke-width="2"/><circle cx="600.0" cy="144.8" r="4" fill="#04244F" stroke="#00C6FF" stroke-width="2"/><circle cx="750.0" cy="150.7" r="4" fill="#04244F" stroke="#00C6FF" stroke-width="2"/><circle cx="900.0" cy="146.1" r="4" fill="#04244F" stroke="#00C6FF" stroke-width="2"/><polyline points="0.0,57.9 150.0,108.0 300.0,141.5 450.0,41.1 600.0,49.5 750.0,74.6 900.0,70.4" fill="none" stroke="#2BE08B" stroke-width="2.5" stroke-linejoin="round"/><circle cx="0.0" cy="57.9" r="4" fill="#04244F" stroke="#2BE08B" stroke-width="2"/><circle cx="150.0" cy="108.0" r="4" fill="#04244F" stroke="#2BE08B" stroke-width="2"/><circle cx="300.0" cy="141.5" r="4" fill="#04244F" stroke="#2BE08B" stroke-width="2"/><circle cx="450.0" cy="41.1" r="4" fill="#04244F" stroke="#2BE08B" stroke-width="2"/><circle cx="600.0" cy="49.5" r="4" fill="#04244F" stroke="#2BE08B" stroke-width="2"/><circle cx="750.0" cy="74.6" r="4" fill="#04244F" stroke="#2BE08B" stroke-width="2"/><circle cx="900.0" cy="70.4" r="4" fill="#04244F" stroke="#2BE08B" stroke-width="2"/>
+      </svg><div class="xl"><span>9/19</span><span>9/20</span><span>9/21</span><span>9/22</span><span>9/23</span><span>9/24</span><span>9/25</span></div></div></div></div>
+      </div>
+
+      <div class="scol r3">
+        <div class="sp"><div class="hd"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7.5" height="7.5" rx="2"/><rect x="13" y="3.5" width="7.5" height="7.5" rx="2"/><rect x="3.5" y="13" width="7.5" height="7.5" rx="2"/><rect x="13" y="13" width="7.5" height="7.5" rx="2"/></svg></span><h3>校区分布</h3><span class="x">6 校区 · 25 档口</span></div><div class="bd"><table class="stbl"><thead><tr><th>校区 / 食堂</th><th style="text-align:right">档口</th><th style="text-align:right">收入</th><th style="text-align:right">毛利率</th><th>状态</th></tr></thead>
+    <tbody><tr><td>本部 1 食堂</td><td class="n">5</td><td class="n">86.2万</td><td class="n">31.5%</td><td><span class="stag sg-g">正常</span></td></tr><tr><td>本部 2 食堂</td><td class="n">5</td><td class="n">92.6万</td><td class="n">29.9%</td><td><span class="stag sg-g">正常</span></td></tr><tr><td>铁道校区食堂</td><td class="n">4</td><td class="n">64.8万</td><td class="n">26.6%</td><td><span class="stag sg-y">关注</span></td></tr><tr><td>湘雅新校区 1 食堂</td><td class="n">4</td><td class="n">58.6万</td><td class="n">25.6%</td><td><span class="stag sg-y">关注</span></td></tr><tr><td>南校区食堂</td><td class="n">4</td><td class="n">48.6万</td><td class="n">23.7%</td><td><span class="stag sg-r">预警</span></td></tr></tbody></table></div></div>
+        <div class="sp"><div class="hd"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.6v8.4h8.4A8.4 8.4 0 0 0 12 3.6z"/><path d="M20 15.2A8.6 8.6 0 1 1 9.4 4.1"/></svg></span><h3>本月采购品类结构</h3><span class="x">按金额</span></div><div class="bd"><div class="sdonut"><div class="ring" style="background:conic-gradient(#00C6FF 0% 34%,#FFA53C 34% 60%,#2BE08B 60% 78%,#FF5C9B 78% 92%,#9B7CFF 92% 100%)"><div class="c"><b>186.2</b><span>万元 · 采购总额</span></div></div>
+      <div class="lg"><div><i style="background:#00C6FF"></i>鲜货蔬菜<b>34%</b></div><div><i style="background:#FFA53C"></i>肉禽蛋类<b>26%</b></div><div><i style="background:#2BE08B"></i>粮油副食<b>18%</b></div><div><i style="background:#FF5C9B"></i>冻货水产<b>14%</b></div><div><i style="background:#9B7CFF"></i>调味干货<b>8%</b></div></div></div></div></div>
+        <div class="sp"><div class="hd"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9L2.6 17.4a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9.4v4.2M12 17.2h.01"/></svg></span><h3>待处理事项</h3><span class="x">按紧急度排序</span></div><div class="bd"><table class="stbl"><thead><tr><th>事项</th><th style="text-align:right">数量</th><th>状态</th></tr></thead>
+    <tbody><tr><td>缺货改派临近超时</td><td class="n">1</td><td><span class="stag sg-r">紧急</span></td></tr><tr><td>检测报告未上传（已拦截）</td><td class="n">2</td><td><span class="stag sg-r">紧急</span></td></tr><tr><td>考评待发布</td><td class="n">46</td><td><span class="stag sg-y">待办</span></td></tr><tr><td>证照 / 合同 30 天内到期</td><td class="n">12</td><td><span class="stag sg-y">待办</span></td></tr><tr><td>三一致校验未通过</td><td class="n">14</td><td><span class="stag sg-r">阻断</span></td></tr><tr><td>临期 / 呆滞物资</td><td class="n">20</td><td><span class="stag sg-o">待处置</span></td></tr></tbody></table></div></div>
+      </div>
+    </div>
+  <div class="sloop" id="s-bar"><i></i></div>
+</div>
+<script>
+(function(){var s=document.getElementById('stage');function f(){var k=Math.min(innerWidth/1920,innerHeight/1080);s.style.transform='translate(-50%,-50%) scale('+k+')';}
+addEventListener('resize',f);f();
+function t(){var d=new Date(),p=function(n){return(n<10?'0':'')+n};document.getElementById('clk').textContent=p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());}
+setInterval(t,1000);t();
+/* 轮播：6 块大屏每 30s 顺序切换，状态记在 sessionStorage，可暂停 */
+var LIST=["overview","supply","inventory","finance","quality","warning"],cur='overview',idx=LIST.indexOf(cur),loopBtn=document.getElementById('s-loop'),bar=document.getElementById('s-bar').firstElementChild;
+var on=sessionStorage.getItem('screenLoop')!=='0',left=30,timer;
+function paint(){loopBtn.classList.toggle('on',on);loopBtn.lastElementChild.textContent=on?'轮播 '+left+'s':'轮播已暂停';bar.style.width=on?((30-left)/30*100)+'%':'0';}
+function tick(){if(!on)return;left--;if(left<=0){sessionStorage.setItem('screenLoop','1');location.href=LIST[(idx+1)%LIST.length]+'.html';return;}paint();}
+timer=setInterval(tick,1000);paint();
+loopBtn.addEventListener('click',function(){on=!on;left=30;sessionStorage.setItem('screenLoop',on?'1':'0');paint();flash(on?'已开启轮播，30 秒后切换到下一块大屏':'轮播已暂停，停留在当前大屏');});
+document.getElementById('s-refresh').addEventListener('click',function(){var b=this;b.classList.add('on');b.lastElementChild.textContent='刷新中…';
+  setTimeout(function(){b.classList.remove('on');b.lastElementChild.textContent='5 分钟';flash('数据已刷新 · '+document.getElementById('clk').textContent);
+  document.querySelectorAll('.skpi .v').forEach(function(v){v.style.transition='opacity .3s';v.style.opacity='.4';setTimeout(function(){v.style.opacity='1'},300)});},700);});
+document.getElementById('s-full').addEventListener('click',function(){var d=document;if(d.fullscreenElement){d.exitFullscreen();this.lastElementChild.textContent='全屏';}else if(d.documentElement.requestFullscreen){d.documentElement.requestFullscreen().catch(function(){});this.lastElementChild.textContent='退出全屏';}});
+function flash(m){var el=document.createElement('div');el.className='sflash';el.textContent=m;s.appendChild(el);setTimeout(function(){el.classList.add('show')},10);setTimeout(function(){el.remove()},2400);}
+window.sflash=flash;})();
+</script></body></html>

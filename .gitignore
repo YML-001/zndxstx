@@ -1,0 +1,8 @@
+.DS_Store
+node_modules/
+.env*
+*.pem
+*.key
+_figma/
+_build/
+预览截图/
