@@ -619,11 +619,11 @@ save();})();</script></aside>
     
   </div>
 <div class="panel"><div class="steps"><div class="step done"><div class="dot">✓</div><div class="lab"><b>领用审核通过</b></div><div class="bar"></div></div><div class="step on"><div class="dot">2</div><div class="lab"><b>按批次配货</b></div><div class="bar"></div></div><div class="step "><div class="dot">3</div><div class="lab"><b>确认出库（扣减库存）</b></div><div class="bar"></div></div><div class="step "><div class="dot">4</div><div class="lab"><b>领用方签收</b></div></div></div></div>
-<div class="note note-w"><span class="ico i18"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9L2.6 17.4a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9.4v4.2M12 17.2h.01"/></svg></span><div><b>批次推荐规则：</b>按「生产日期 → 保质期剩余天数 → 入库时间 → 批次号」四级排序键依次比较确定，保证任一时点的推荐批次唯一且可复现。临期批次优先于先进先出，即临期预警批次与先进先出推荐批次不一致时，以临期批次优先出库。</div></div>
+<div class="note note-w"><span class="ico i18"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9L2.6 17.4a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9.4v4.2M12 17.2h.01"/></svg></span><div><b>批次推荐规则：</b>按「到期日 → 入库日 → 批次号 → 库位」四级排序键依次比较确定，保证任一时点的推荐批次唯一且可复现。到期日更早的批次优先出库。</div></div>
 <div class="sec">
     <div class="sh"><div class="st"><h3>单据信息</h3></div>
     </div>
-    <div class="panel"><div class="kv"><div class="kvi"><label>出库单号</label><span>OUT-20260925-071</span></div><div class="kvi"><label>关联领用单</label><span>RQ-20260925-027</span></div><div class="kvi"><label>档口</label><span>本部 2 食堂 · 风味档口</span></div><div class="kvi"><label>领用类型</label><span>班组领用</span></div><div class="kvi"><label>申请人</label><span>何春梅</span></div><div class="kvi"><label>审核人</label><span>王守仓</span></div><div class="kvi"><label>配货人</label><span>王守仓</span></div><div class="kvi"><label>出库成本</label><span>¥1,008.00</span></div></div></div></div>
+    <div class="panel"><div class="kv"><div class="kvi"><label>出库单号</label><span>OUT-20260925-071</span></div><div class="kvi"><label>关联领用单</label><span>RQ-20260925-027</span></div><div class="kvi"><label>档口</label><span>本部 2 食堂 · 风味档口</span></div><div class="kvi"><label>领用类型</label><span>班组领用</span></div><div class="kvi"><label>申请人</label><span>何春梅</span></div><div class="kvi"><label>审核人</label><span>王守仓</span></div><div class="kvi"><label>配货人</label><span>王守仓</span></div><div class="kvi"><label>出库成本</label><span>¥1,009.55</span></div></div></div></div>
 <div class="sec">
     <div class="sh"><div class="st"><h3>配货明细与批次推荐</h3></div>
     </div>

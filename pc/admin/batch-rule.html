@@ -659,7 +659,7 @@ save();})();</script></aside>
     <span class="sn">出库时系统按下列顺序自动推荐批次，排在前面的先出</span></div>
     <div class="panel"><div class="twrap"><table class="tbl">
       <thead><tr><th class="sortable" title="点击排序">优先级</th><th class="sortable" title="点击排序">排序键</th><th class="sortable" title="点击排序">排序方向</th><th class="sortable" title="点击排序">说明</th><th class="sortable" title="点击排序">排序举例</th><th class="sortable" title="点击排序">例外处理</th></tr></thead>
-      <tbody><tr><td>第 1 级</td><td>到效期（保质期截止日）</td><td>升序（早的先出）</td><td>最先到期的批次优先出库，避免过期损失</td><td>2026-09-27 的批次先于 2026-10-15 的批次</td><td>已过期批次不推荐，须先报损</td></tr><tr><td>第 2 级</td><td>入库日期</td><td>升序（早的先出）</td><td>到效期相同的，先入库的先出</td><td>09-18 入库先于 09-25 入库</td><td>—</td></tr><tr><td>第 3 级</td><td>批次号</td><td>升序</td><td>同日多批次的，按批次号顺序出库</td><td>PC-20260925-01 先于 PC-20260925-02</td><td>—</td></tr><tr><td>第 4 级</td><td>库位编码</td><td>升序</td><td>同批次分多库位存放的，按库位编码顺序</td><td>A-01-1 先于 A-01-2</td><td>临期批次所在库位优先</td></tr></tbody>
+      <tbody><tr><td>第 1 级</td><td>到期日（保质期截止日）</td><td>升序（早的先出）</td><td>最先到期的批次优先出库，避免过期损失</td><td>2026-09-27 的批次先于 2026-10-15 的批次</td><td>已过期批次不推荐，须先报损</td></tr><tr><td>第 2 级</td><td>入库日</td><td>升序（早的先出）</td><td>到期日相同的，先入库的先出</td><td>09-18 入库先于 09-25 入库</td><td>—</td></tr><tr><td>第 3 级</td><td>批次号</td><td>升序</td><td>同日多批次的，按批次号顺序出库</td><td>PC-20260925-01 先于 PC-20260925-02</td><td>—</td></tr><tr><td>第 4 级</td><td>库位</td><td>升序</td><td>同批次分多库位存放的，按库位编码顺序</td><td>A-01-1 先于 A-01-2</td><td>临期批次所在库位优先</td></tr></tbody>
       
     </table></div></div></div>
 <div class="cols c2"><div class="sec">
