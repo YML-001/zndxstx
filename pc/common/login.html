@@ -526,13 +526,20 @@ body.print{background:#F1F4F7;min-width:0}
 .scrcard .sgo{display:inline-flex;align-items:center;gap:4px;margin-top:auto;padding-top:8px;font-size:12.5px;color:#fff}
 .scrcard .sgo .ico{width:14px;height:14px}
 
-/* ---------- 树 ---------- */
-.tree{display:flex;flex-direction:column;gap:1px;font-size:13px}
-.tree .ti{display:flex;align-items:center;gap:8px;height:32px;border-radius:var(--r-sm);padding:0 10px;color:var(--t-body)}
+/* ---------- 树（支持 1–4 级缩进 + 展开收起） ---------- */
+.tree{display:flex;flex-direction:column;gap:1px;font-size:13px;max-height:640px;overflow:auto}
+.tree .ti{display:flex;align-items:center;gap:6px;min-height:32px;border-radius:var(--r-sm);padding:4px 10px;color:var(--t-body);line-height:1.3}
 .tree .ti:hover{background:var(--brand-50)}
 .tree .ti.on{background:var(--brand-100);color:var(--brand)}
-.tree .ti .ico{width:16px;height:16px;color:var(--t-muted)}
-.tree .l1{padding-left:10px}.tree .l2{padding-left:32px}.tree .l3{padding-left:54px}
+.tree .ti.hide{display:none}
+.tree .ti .ico{width:16px;height:16px;flex:0 0 16px;color:var(--t-muted)}
+.tree .ti .tn{flex:1;min-width:0}
+.tree .tcaret{display:inline-flex;width:14px;height:14px;flex:0 0 14px;align-items:center;justify-content:center;border-radius:3px;color:var(--t-muted);position:relative}
+.tree .tcaret::before{content:"";width:0;height:0;border-left:5px solid currentColor;border-top:4px solid transparent;border-bottom:4px solid transparent;transform:rotate(0deg);transition:transform .15s}
+.tree .ti.open>.tcaret::before{transform:rotate(90deg)}
+.tree .tcaret.sp{visibility:hidden}
+.tree .ti.has-kids .tcaret{cursor:pointer}
+.tree .l1{padding-left:8px}.tree .l2{padding-left:28px}.tree .l3{padding-left:48px}.tree .l4{padding-left:68px}.tree .l5{padding-left:88px}
 .split{display:grid;grid-template-columns:280px 1fr;gap:14px;align-items:start}
 .split.w320{grid-template-columns:320px 1fr}
 
@@ -578,22 +585,31 @@ body.print{background:#F1F4F7;min-width:0}
     <div class="lg-tabs"><a class="on" href="#">统一身份认证</a><a href="#">账号密码</a><a href="#">供应商登录</a></div>
     <div class="lg-body">
       <h3>欢迎登录</h3>
-      <p class="lg-tip">校内用户请使用学校统一身份认证账号登录，首次登录将自动匹配您的岗位与数据权限。</p>
-      <a class="lg-sso" href="../keeper/dashboard.html"><span class="ico i18"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2l7.2 2.6v6c0 4.3-3 7.7-7.2 9.2-4.2-1.5-7.2-4.9-7.2-9.2v-6z"/><path d="M9 12.2l2.2 2.2 4-4.4"/></svg></span>使用学校统一身份认证登录</a>
-      <div class="lg-or"><span>或使用账号密码</span></div>
-      <div class="fld"><label>账号</label><select class="inp lgsel" id="lg-acc"><option value="buyer">李慧珍 · 采购主管（buyer）</option><option value="canteen">张建国 · 食堂主任（canteen）</option><option value="keeper" selected>王守仓 · 保管员（keeper）</option><option value="staple">赵中仓 · 主食车间（staple）</option><option value="supplier">刘经理 · 供应商（supplier）</option><option value="leader">陈明远 · 分管领导（leader）</option><option value="office">周综合 · 综合办（office）</option><option value="finance">刘会计 · 财务（finance）</option><option value="device">周维修 · 设备维修（device）</option><option value="hr">孙人事 · 人事（hr）</option><option value="admin">赵运维 · 管理员（admin）</option></select></div>
-      <div class="fld"><label>密码</label><input class="inp" type="password" value="123456" placeholder="请输入密码"></div>
-      <div class="lg-row"><label class="radio on"><i></i>记住账号</label><a class="lnk" href="#">忘记密码？</a></div>
-      <a class="btn b-pri lg-btn" href="../keeper/dashboard.html" data-act="login">登 录</a>
+      <div id="lg-internal">
+        <p class="lg-tip">校内用户请使用学校统一身份认证账号登录，首次登录将自动匹配您的岗位与数据权限。</p>
+        <a class="lg-sso" href="../keeper/dashboard.html"><span class="ico i18"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2l7.2 2.6v6c0 4.3-3 7.7-7.2 9.2-4.2-1.5-7.2-4.9-7.2-9.2v-6z"/><path d="M9 12.2l2.2 2.2 4-4.4"/></svg></span>使用学校统一身份认证登录</a>
+        <div class="lg-or"><span>或使用账号密码</span></div>
+        <div class="fld"><label>账号</label><select class="inp lgsel" id="lg-acc"><option value="buyer">李慧珍 · 采购部（buyer）</option><option value="canteen">张建国 · 食堂主任（canteen）</option><option value="keeper" selected>王守仓 · 食堂保管员（keeper）</option><option value="pkeeper">钱保管 · 采购保管员（pkeeper）</option><option value="staple">赵中仓 · 保障管理站（staple）</option><option value="supplier">刘经理 · 供应商（supplier）</option><option value="leader">陈明远 · 分管领导（leader）</option><option value="office">周综合 · 综合办（office）</option><option value="finance">刘会计 · 财务（finance）</option><option value="device">周维修 · 设备维修（device）</option><option value="hr">孙人事 · 人事（hr）</option><option value="admin">赵运维 · 管理员（admin）</option></select></div>
+        <div class="fld"><label>密码</label><input class="inp" type="password" value="123456" placeholder="请输入密码"></div>
+        <div class="lg-row"><label class="radio on"><i></i>记住账号</label><a class="lnk" href="#">忘记密码？</a></div>
+        <a class="btn b-pri lg-btn" href="../keeper/dashboard.html" data-act="login">登 录</a>
+      </div>
+      <div id="lg-supplier" class="hide">
+        <p class="lg-tip">供应商账号由饮食服务中心管理员开通。首次登录须补全企业资料，经采购资质初审后方可使用工作台。</p>
+        <div class="fld"><label>登录账号</label><select class="inp lgsel" id="lg-sup-acc"><option value="sup-xiangjiang">湘江粮油有限公司 · sup-xiangjiang（已启用）</option><option value="sup-xianhui">湖南鲜汇供应链有限公司 · sup-xianhui（未登录）</option><option value="sup-chupin">楚品优选农副产品公司 · sup-chupin（待补全资料）</option><option value="sup-xiangcheng">湘诚粮油贸易有限公司 · sup-xiangcheng（资料已提交待审核）</option></select></div>
+        <div class="fld"><label>密码</label><input class="inp" type="password" value="123456" placeholder="请输入管理员下发的初始密码"></div>
+        <div class="lg-row"><label class="radio on"><i></i>记住账号</label><a class="lnk" href="#">忘记密码？</a></div>
+        <a class="btn b-pri lg-btn" href="../supplier/dashboard.html" data-act="login">登 录</a>
+      </div>
       <div class="lg-foot">
-        <span>供应商首次合作？</span><a class="lnk" href="register.html">在线自助注册</a>
-        <span class="dot">·</span><a class="lnk" href="register-status.html">查询注册进度</a>
+        <span>如需供应商入驻，</span><a class="lnk" href="supplier-onboard.html">查看入驻说明</a>
+        <span class="dot">·</span><span>账号由管理员开通，请联系采购与物流管理站</span>
       </div>
     </div>
   </div>
 </div>
 <div class="lg-roles">
-  <div class="lg-rt">演示入口 · 按角色直接进入（原型演示用，正式环境由统一身份认证按岗位自动分配）</div>
+  <div class="lg-rt">体验入口 · 按角色直接进入（正式环境由统一身份认证按岗位自动分配）</div>
   <div class="lg-rg">
     <a href="../buyer/dashboard.html" class="lg-rc" style="--rc:#006FE0">
       <span class="ri"><span class="ico i18"><svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7.34162 1.66667L4.32495 4.69167" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -601,10 +617,11 @@ body.print{background:#F1F4F7;min-width:0}
 <path d="M3.51675 4.87498H16.4834C17.5084 4.87498 18.3334 4.99998 18.3334 6.54165C18.3334 8.33331 17.5084 8.20831 16.4834 8.20831H3.51675C2.49175 8.20831 1.66675 8.33331 1.66675 6.54165C1.66675 4.99998 2.49175 4.87498 3.51675 4.87498Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M8.1333 11.6667V14.625" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M11.9666 11.6667V14.625" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M2.91675 8.33333L4.09175 15.5333C4.35841 17.15 5.00008 18.3333 7.38341 18.3333H12.4084C15.0001 18.3333 15.3834 17.2 15.6834 15.6333L17.0834 8.33333" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span><b>采购主管</b><span>李慧珍 · 采购与物流管理站</span></a><a href="../canteen/dashboard.html" class="lg-rc" style="--rc:#EE7F4C">
+<path d="M2.91675 8.33333L4.09175 15.5333C4.35841 17.15 5.00008 18.3333 7.38341 18.3333H12.4084C15.0001 18.3333 15.3834 17.2 15.6834 15.6333L17.0834 8.33333" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span><b>采购部</b><span>李慧珍 · 采购部</span></a><a href="../canteen/dashboard.html" class="lg-rc" style="--rc:#EE7F4C">
       <span class="ri"><span class="ico i18"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.6V20h16V9.6"/><path d="M3.2 9.6L5 4.2h14l1.8 5.4a3 3 0 0 1-5.6 1.6 3 3 0 0 1-5.6 0 3 3 0 0 1-5.6-1.6z"/><path d="M10 20v-5h4v5"/></svg></span></span><b>食堂主任</b><span>张建国 · 本部 2 食堂</span></a><a href="../keeper/dashboard.html" class="lg-rc" style="--rc:#4CB678">
-      <span class="ri"><span class="ico i18"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.4l8 4v9.2l-8 4-8-4V7.4z"/><path d="M4 7.4l8 4 8-4M12 11.4v9.2"/></svg></span></span><b>保管员</b><span>王守仓 · 本部 2 食堂仓库</span></a><a href="../staple/dashboard.html" class="lg-rc" style="--rc:#9B7CFF">
-      <span class="ri"><span class="ico i18"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 20V8.8L12 4.4l8.6 4.4V20"/><path d="M7.4 20v-7h9.2v7"/><path d="M7.4 16.4h9.2"/></svg></span></span><b>主食车间</b><span>赵中仓 · 主食车间（望城）</span></a><a href="../supplier/dashboard.html" class="lg-rc" style="--rc:#22B8CF">
+      <span class="ri"><span class="ico i18"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.4l8 4v9.2l-8 4-8-4V7.4z"/><path d="M4 7.4l8 4 8-4M12 11.4v9.2"/></svg></span></span><b>食堂保管员</b><span>王守仓 · 本部 2 食堂仓库</span></a><a href="../pkeeper/dashboard.html" class="lg-rc" style="--rc:#00856A">
+      <span class="ri"><span class="ico i18"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 20V8.8L12 4.4l8.6 4.4V20"/><path d="M7.4 20v-7h9.2v7"/><path d="M7.4 16.4h9.2"/></svg></span></span><b>采购保管员</b><span>钱保管 · 采购部库房</span></a><a href="../staple/dashboard.html" class="lg-rc" style="--rc:#9B7CFF">
+      <span class="ri"><span class="ico i18"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 20V8.8L12 4.4l8.6 4.4V20"/><path d="M7.4 20v-7h9.2v7"/><path d="M7.4 16.4h9.2"/></svg></span></span><b>保障管理站</b><span>赵中仓 · 保障管理站 · 主食车间</span></a><a href="../supplier/dashboard.html" class="lg-rc" style="--rc:#22B8CF">
       <span class="ri"><span class="ico i18"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 6.4h10.4v10.2H2.8z"/><path d="M13.2 9.6h3.6l3.4 3.4v3.6h-7z"/><circle cx="6.8" cy="18.4" r="1.9"/><circle cx="17" cy="18.4" r="1.9"/></svg></span></span><b>供应商</b><span>刘经理 · 在册供应商 · 湘江粮油</span></a><a href="../leader/dashboard.html" class="lg-rc" style="--rc:#FFA53C">
       <span class="ri"><span class="ico i18"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.6l2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg></span></span><b>分管领导</b><span>陈明远 · 后勤保障部 · 分管副主任</span></a><a href="../office/dashboard.html" class="lg-rc" style="--rc:#FF5C9B">
       <span class="ri"><span class="ico i18"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 18.6c3-.6 4-4.6 3-7.2-.8-2-3-1.4-2.7 1 .4 3.2 5 5.2 8.3 4.4 2.4-.6 3.4-2.4 5-2.4 1.4 0 2.2 1 3.6 1"/><path d="M15.4 4.2l3.4 3.4-6.6 6.6-4 .6.6-4z"/></svg></span></span><b>综合办</b><span>周综合 · 饮食服务中心综合办</span></a><a href="../finance/dashboard.html" class="lg-rc" style="--rc:#2BE08B">
@@ -612,7 +629,7 @@ body.print{background:#F1F4F7;min-width:0}
       <span class="ri"><span class="ico i18"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.6 6.4a4.4 4.4 0 0 0 5.6 5.6l-8 8a2.6 2.6 0 0 1-3.7-3.7z"/><path d="M6.4 4.2l3 3-2.2 2.2-3-3z"/></svg></span></span><b>设备维修</b><span>周维修 · 保障管理站</span></a><a href="../hr/dashboard.html" class="lg-rc" style="--rc:#FF4D6A">
       <span class="ri"><span class="ico i18"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9.2" cy="8" r="3.4"/><path d="M2.8 19.8a6.4 6.4 0 0 1 12.8 0"/><path d="M16 5a3.4 3.4 0 0 1 0 6.6"/><path d="M17.4 14.2a6.2 6.2 0 0 1 3.8 5.6"/></svg></span></span><b>人事</b><span>孙人事 · 饮食服务中心 · 人事</span></a><a href="../admin/dashboard.html" class="lg-rc" style="--rc:#5D6C7B">
       <span class="ri"><span class="ico i18"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.5 14.4a1.6 1.6 0 0 0 .3 1.8l.1.1a1.9 1.9 0 1 1-2.7 2.7l-.1-.1a1.6 1.6 0 0 0-2.7 1.1v.3a1.9 1.9 0 1 1-3.8 0v-.2a1.6 1.6 0 0 0-2.8-1.1l-.1.1a1.9 1.9 0 1 1-2.7-2.7l.1-.1a1.6 1.6 0 0 0-1.1-2.7h-.3a1.9 1.9 0 1 1 0-3.8h.2A1.6 1.6 0 0 0 5 7.8l-.1-.1a1.9 1.9 0 1 1 2.7-2.7l.1.1a1.6 1.6 0 0 0 1.8.3h.1a1.6 1.6 0 0 0 1-1.5v-.3a1.9 1.9 0 1 1 3.8 0v.2a1.6 1.6 0 0 0 2.7 1.1l.1-.1a1.9 1.9 0 1 1 2.7 2.7l-.1.1a1.6 1.6 0 0 0 1.1 2.7h.3a1.9 1.9 0 1 1 0 3.8h-.2a1.6 1.6 0 0 0-1.4 1z"/></svg></span></span><b>管理员</b><span>赵运维 · 信息中心</span></a>
-    <a href="../../screen/overview.html" class="lg-rc" style="--rc:#00A6D6"><span class="ri"><span class="ico i18"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="4" width="18.4" height="12.4" rx="2.2"/><path d="M8.4 20.4h7.2M12 16.4v4"/></svg></span></span><b>数据大屏</b><span>供应链总览等 6 块</span></a>
+    <a href="../../screen/overview.html" class="lg-rc" style="--rc:#00A6D6"><span class="ri"><span class="ico i18"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="4" width="18.4" height="12.4" rx="2.2"/><path d="M8.4 20.4h7.2M12 16.4v4"/></svg></span></span><b>数据大屏</b><span>供应链总览等 5 块</span></a>
   </div>
 </div>
 <style>

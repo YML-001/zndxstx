@@ -526,13 +526,20 @@ body.print{background:#F1F4F7;min-width:0}
 .scrcard .sgo{display:inline-flex;align-items:center;gap:4px;margin-top:auto;padding-top:8px;font-size:12.5px;color:#fff}
 .scrcard .sgo .ico{width:14px;height:14px}
 
-/* ---------- 树 ---------- */
-.tree{display:flex;flex-direction:column;gap:1px;font-size:13px}
-.tree .ti{display:flex;align-items:center;gap:8px;height:32px;border-radius:var(--r-sm);padding:0 10px;color:var(--t-body)}
+/* ---------- 树（支持 1–4 级缩进 + 展开收起） ---------- */
+.tree{display:flex;flex-direction:column;gap:1px;font-size:13px;max-height:640px;overflow:auto}
+.tree .ti{display:flex;align-items:center;gap:6px;min-height:32px;border-radius:var(--r-sm);padding:4px 10px;color:var(--t-body);line-height:1.3}
 .tree .ti:hover{background:var(--brand-50)}
 .tree .ti.on{background:var(--brand-100);color:var(--brand)}
-.tree .ti .ico{width:16px;height:16px;color:var(--t-muted)}
-.tree .l1{padding-left:10px}.tree .l2{padding-left:32px}.tree .l3{padding-left:54px}
+.tree .ti.hide{display:none}
+.tree .ti .ico{width:16px;height:16px;flex:0 0 16px;color:var(--t-muted)}
+.tree .ti .tn{flex:1;min-width:0}
+.tree .tcaret{display:inline-flex;width:14px;height:14px;flex:0 0 14px;align-items:center;justify-content:center;border-radius:3px;color:var(--t-muted);position:relative}
+.tree .tcaret::before{content:"";width:0;height:0;border-left:5px solid currentColor;border-top:4px solid transparent;border-bottom:4px solid transparent;transform:rotate(0deg);transition:transform .15s}
+.tree .ti.open>.tcaret::before{transform:rotate(90deg)}
+.tree .tcaret.sp{visibility:hidden}
+.tree .ti.has-kids .tcaret{cursor:pointer}
+.tree .l1{padding-left:8px}.tree .l2{padding-left:28px}.tree .l3{padding-left:48px}.tree .l4{padding-left:68px}.tree .l5{padding-left:88px}
 .split{display:grid;grid-template-columns:280px 1fr;gap:14px;align-items:start}
 .split.w320{grid-template-columns:320px 1fr}
 
@@ -628,9 +635,9 @@ body.print{background:#F1F4F7;min-width:0}
     <div class="panel"><div class="qgrid c4">
     <a class="qcard" href="../../mobile/keeper/m-acceptance-scan.html"><img src="../../assets/img/i3d-scanner.png" alt="">
     <div class="qt"><b>扫码验收</b><span>移动端扫码到货验收</span></div><span class="ico i16"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 4.5l7.5 7.5-7.5 7.5"/></svg></span></a>
-    <a class="qcard" href="../keeper/inbound-shelve.html"><img src="../../assets/img/i3d-inbox-check.png" alt="">
+    <a class="qcard" href="../keeper/inventory-ledger.html"><img src="../../assets/img/i3d-inbox-check.png" alt="">
     <div class="qt"><b>入库上架</b><span>按批次上架并打印标签</span></div><span class="ico i16"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 4.5l7.5 7.5-7.5 7.5"/></svg></span></a>
-    <a class="qcard" href="../keeper/outbound-pick.html"><img src="../../assets/img/i3d-outbound.png" alt="">
+    <a class="qcard" href="../keeper/issue-out-form.html"><img src="../../assets/img/i3d-outbound.png" alt="">
     <div class="qt"><b>出库发料</b><span>先进先出推荐批次</span></div><span class="ico i16"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 4.5l7.5 7.5-7.5 7.5"/></svg></span></a>
     <a class="qcard" href="../keeper/inventory-list.html"><img src="../../assets/img/i3d-boxes-teal.png" alt="">
     <div class="qt"><b>实时库存</b><span>本食堂 312 种物资</span></div><span class="ico i16"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 4.5l7.5 7.5-7.5 7.5"/></svg></span></a>

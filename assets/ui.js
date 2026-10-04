@@ -348,10 +348,14 @@
     t.classList.add('on');
     var raw = txtOf(t), name = raw.replace(/\s*\d+$/, '').trim(), cnt = parseInt((raw.match(/(\d+)$/) || [])[1]);
     if (box.classList.contains('lg-tabs')) {
-      var sso = $('.lg-sso'), or = $('.lg-or'), flds = $$('.lg-body .fld');
+      var sso = $('.lg-sso'), or = $('.lg-or');
+      var internal = $('#lg-internal'), sup = $('#lg-supplier');
+      if (internal && sup) {
+        internal.classList.toggle('hide', /供应商/.test(name));
+        sup.classList.toggle('hide', !/供应商/.test(name));
+      }
       if (sso) sso.style.display = /统一身份/.test(name) ? '' : 'none';
       if (or) or.style.display = /统一身份/.test(name) ? '' : 'none';
-      if (flds[0]) { var l0 = $('label', flds[0]); if (l0) l0.textContent = /供应商/.test(name) ? '手机号' : '账号'; }
       toast('已切换到「' + name + '」登录方式');
       return;
     }
@@ -488,14 +492,90 @@
     setTimeout(function () { toast(n < 0 ? '已搜索「' + q + '」' : '已按「' + q + '」筛选，匹配 ' + n + ' 条', 'ok'); }, 200);
   }
 
-  /* ================= 左侧树 ================= */
+  /* ================= 左侧树（多级展开收起） ================= */
+  function syncTree(tree) {
+    if (!tree) return;
+    var items = $$('.ti', tree);
+    var openAt = {};
+    items.forEach(function (ti) {
+      var lv = +(ti.getAttribute('data-lv') || 1);
+      var vis = true;
+      for (var i = 1; i < lv; i++) if (!openAt[i]) { vis = false; break; }
+      ti.classList.toggle('hide', !vis);
+      openAt[lv] = vis && ti.classList.contains('has-kids') && ti.classList.contains('open');
+      for (var j = lv + 1; j <= 8; j++) openAt[j] = false;
+    });
+  }
+  function initTrees() { $$('.tree').forEach(syncTree); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initTrees);
+  else initTrees();
+
+  function catMetaMap() {
+    var el = $('#cat-nodes-data');
+    if (!el) return null;
+    try { return JSON.parse(el.textContent); } catch (e) { return null; }
+  }
+  function setKvByLabel(root, label, val) {
+    if (!root) return;
+    $$('.kvi', root).forEach(function (kv) {
+      if (txtOf($('label', kv)).replace(/\s/g, '') === String(label).replace(/\s/g, '')) $('span', kv).textContent = val;
+    });
+  }
+  function updateCatPanel(name) {
+    var host = $('#cat-attr-panel');
+    var meta = catMetaMap();
+    if (!host || !meta || !meta[name]) return;
+    var n = meta[name];
+    var sec = host.closest('.sec');
+    var h3 = sec && $('.sh h3', sec);
+    if (h3) {
+      if (!h3.getAttribute('data-base')) h3.setAttribute('data-base', '类目属性');
+      h3.textContent = h3.getAttribute('data-base') + ' · ' + name;
+    }
+    host.setAttribute('data-cat', name);
+    var panel = $('.panel', host) || host;
+    setKvByLabel(panel, '类目名称', name);
+    setKvByLabel(panel, '上级类目', n.parent || '（顶级）');
+    setKvByLabel(panel, '层级', n.level === 1 ? '一级类目' : '二级类目');
+    setKvByLabel(panel, '下级类目数', n.level === 1 ? n.kids + ' 个' : '0 个');
+    setKvByLabel(panel, '关联物资数', n.level === 1 ? String(128 + (n.kids * 11) % 420) + ' 条' : String(12 + (name.length * 3) % 48) + ' 条');
+    setKvByLabel(panel, '采购分包', n.l1 + '包');
+    setKvByLabel(panel, '报表归集', n.l1);
+    var tbl = $('table.tbl', panel);
+    if (!tbl) return;
+    var tb = $('tbody', tbl);
+    if (!tb) return;
+    var kids = n.childNames || [];
+    if (!kids.length) {
+      tb.innerHTML = '<tr class="empty"><td colspan="8">当前为二级类目，无下级节点</td></tr>';
+      setTotal(tbl, 0);
+      return;
+    }
+    tb.innerHTML = kids.map(function (cn, i) {
+      return '<tr><td>' + cn + '</td><td>二级</td><td><span class="num">' + (12 + (i * 7) % 48) + '</span></td><td>365 天</td><td>免检</td><td>¥' + ((28 + i * 13) * 1000).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</td><td><span class="tag t-s">启用</span></td><td><a class="lnk" href="#">编辑</a></td></tr>';
+    }).join('');
+    setTotal(tbl, kids.length);
+  }
+
   document.addEventListener('click', function (e) {
     var ti = e.target.closest('.tree .ti');
     if (!ti) return;
     e.preventDefault();
-    $$('.ti', ti.closest('.tree')).forEach(function (x) { x.classList.remove('on'); });
+    var tree = ti.closest('.tree');
+    var name = txtOf($('.tn', ti) || ti);
+    if (ti.classList.contains('has-kids') && (e.target.closest('.tcaret') || e.detail >= 2)) {
+      ti.classList.toggle('open');
+      syncTree(tree);
+      toast((ti.classList.contains('open') ? '已展开' : '已收起') + '「' + name + '」');
+      return;
+    }
+    $$('.ti', tree).forEach(function (x) { x.classList.remove('on'); });
     ti.classList.add('on');
-    var name = txtOf(ti);
+    if ($('#cat-attr-panel')) {
+      updateCatPanel(name);
+      toast('已选择「' + name + '」');
+      return;
+    }
     var split = ti.closest('.split, .cols') || $('.work');
     var tbl = split && $('table.tbl', split);
     if (tbl) {
@@ -979,13 +1059,65 @@
 
     /* data-act 优先 */
     if (act === 'bell') { e.preventDefault(); toggleBell(el); return; }
+    if (act === 'oa-link' || /^前往 OA/.test(txt)) {
+      e.preventDefault();
+      toast('正在打开学校财务 OA 付款与发票页面…', 'ok');
+      return;
+    }
+    if (act === 'price-import' || /^导入系统$/.test(txt)) {
+      e.preventDefault();
+      confirmAction(el, {
+        title: '导入系统',
+        okText: '确认导入',
+        body: '将已审批价格写入执行价目并变为「已导入生效」，之后方可用于计划审核与自动派单。是否继续？',
+        msg: '价格已导入系统，状态已更新为「已导入生效」',
+        status: '已导入生效',
+        done: '已导入',
+        fields: 'none',
+      });
+      return;
+    }
     if (act === 'scan' || /扫码|扫一扫|扫描|打码|扫库位|扫标签/.test(txt)) { e.preventDefault(); doScan(el); return; }
     if (act === 'login' || /^登\s*录$/.test(txt)) {
       e.preventDefault();
       var s = $('#lg-acc'), role = s ? s.value : '';
+      var supSel = $('#lg-sup-acc');
+      var supTabOn = $('.lg-tabs a.on') && /供应商/.test(txtOf($('.lg-tabs a.on')));
+      var mSupMode = IS_M && supSel;
+      if (supTabOn || mSupMode) {
+        role = 'supplier';
+        var sid = supSel ? supSel.value : 'sup-xiangjiang';
+        var pwd = $('input[type="password"]'); if (pwd && !pwd.value) { pwd.style.borderColor = '#E41E3F'; toast('请输入密码', 'err'); return; }
+        if (sid === 'sup-chupin' || sid === 'sup-xianhui') {
+          toast('首次登录须先完善企业资料', 'ok');
+          go(IS_M ? '../supplier/m-complete-profile.html' : '../supplier/complete-profile.html', 600);
+          return;
+        }
+        toast('登录成功，正在进入供应商工作台…', 'ok');
+        go(IS_M ? '../supplier/m-dashboard.html' : '../supplier/dashboard.html', 600);
+        return;
+      }
       var pwd = $('input[type="password"]'); if (pwd && !pwd.value) { pwd.style.borderColor = '#E41E3F'; toast('请输入密码', 'err'); return; }
       toast('登录成功，正在进入工作台…', 'ok');
       go(role ? (IS_M ? '../' + role + '/m-dashboard.html' : '../' + role + '/dashboard.html') : (real ? href : (IS_M ? '../keeper/m-dashboard.html' : '../keeper/dashboard.html')), 600);
+      return;
+    }
+    if (act === 'sup-profile-submit') {
+      e.preventDefault();
+      var box = el.closest('.work, .shell, .mbody, body');
+      var req = $$('[data-req="1"]', box);
+      var bad = false;
+      req.forEach(function (f) {
+        var empty = !String(f.value || '').trim() || (f.tagName === 'SELECT' && /请选择/.test(f.value));
+        f.style.borderColor = empty ? '#E41E3F' : '';
+        if (empty) bad = true;
+      });
+      $$('.upload[data-req="1"]', box).forEach(function (u) {
+        if (!$('.filetag', u)) { u.style.borderColor = '#E41E3F'; bad = true; }
+      });
+      if (bad) { toast('请补全必填项后再提交', 'err'); return; }
+      toast('资料已提交，待采购主管资质初审', 'ok');
+      go(IS_M ? 'm-complete-profile.html' : 'complete-profile.html', 800);
       return;
     }
     if (/忘记密码|获取验证码|重新发送/.test(txt)) { e.preventDefault(); if (/验证码/.test(txt)) { busy(el, '已发送 60s', 1500); toast('验证码已发送至 138 **** 6688', 'ok'); return; } dialog({ title: '找回密码', body: fld('账号 / 手机号', inp('账号', 'wangshoucang')) + fld('短信验证码', inp('验证码', '', '6 位验证码')) + note('验证通过后将短信下发临时密码，登录后请立即修改。'), okText: '提交', onOk: function () { toast('临时密码已短信发送，请注意查收', 'ok'); } }); return; }

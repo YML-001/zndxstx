@@ -196,9 +196,9 @@ button.sbtn{font-family:var(--font);cursor:pointer}
     <div class="l"><a class="sbtn" href="../index.html"><span class="ico i16"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4.5L7 12l7.5 7.5"/></svg></span>原型导航</a></div>
     <nav class="stabs"><a href="overview.html" class="on">运营指挥总览</a><a href="supply.html" class="">采购供应链监控</a><a href="inventory.html" class="">库存与出入库监控</a></nav>
     <div class="ttl"><h1>运营指挥总览</h1><div class="en">OPERATION COMMAND OVERVIEW · 2026 年 9 月</div></div>
-    <nav class="stabs"><a href="finance.html" class="">经营 · 成本 · 财务</a><a href="quality.html" class="">质量安全监控</a><a href="warning.html" class="">预警指挥看板</a></nav>
+    <nav class="stabs"><a href="finance.html" class="">经营 · 成本 · 财务</a><a href="quality.html" class="">质量安全监控</a></nav>
     <div class="r"><button class="sbtn" id="s-refresh" title="点击立即刷新，每 5 分钟自动刷新"><span class="ico i16"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20.5 3.8v4.4h-4.4"/></svg></span><span>5 分钟</span></button>
-      <button class="sbtn" id="s-loop" title="每 30 秒自动切换 6 块大屏，点击暂停 / 继续"><span class="ico i16"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="4" width="18.4" height="12.4" rx="2.2"/><path d="M8.4 20.4h7.2M12 16.4v4"/></svg></span><span>轮播 30s</span></button>
+      <button class="sbtn" id="s-loop" title="每 30 秒自动切换 5 块大屏，点击暂停 / 继续"><span class="ico i16"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="4" width="18.4" height="12.4" rx="2.2"/><path d="M8.4 20.4h7.2M12 16.4v4"/></svg></span><span>轮播 30s</span></button>
       <button class="sbtn" id="s-full" title="全屏显示"><span class="ico i16"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="4" width="18.4" height="12.4" rx="2.2"/><path d="M8.4 20.4h7.2M12 16.4v4"/></svg></span><span>全屏</span></button>
       <span class="tm"><span class="clock" id="clk">08:26:14</span><span class="date">2026-09-25 周五</span></span></div>
   </header>
@@ -287,8 +287,8 @@ button.sbtn{font-family:var(--font);cursor:pointer}
 addEventListener('resize',f);f();
 function t(){var d=new Date(),p=function(n){return(n<10?'0':'')+n};document.getElementById('clk').textContent=p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());}
 setInterval(t,1000);t();
-/* 轮播：6 块大屏每 30s 顺序切换，状态记在 sessionStorage，可暂停 */
-var LIST=["overview","supply","inventory","finance","quality","warning"],cur='overview',idx=LIST.indexOf(cur),loopBtn=document.getElementById('s-loop'),bar=document.getElementById('s-bar').firstElementChild;
+/* 轮播：5 块大屏每 30s 顺序切换，状态记在 sessionStorage，可暂停 */
+var LIST=["overview","supply","inventory","finance","quality"],cur='overview',idx=LIST.indexOf(cur),loopBtn=document.getElementById('s-loop'),bar=document.getElementById('s-bar').firstElementChild;
 var on=sessionStorage.getItem('screenLoop')!=='0',left=30,timer;
 function paint(){loopBtn.classList.toggle('on',on);loopBtn.lastElementChild.textContent=on?'轮播 '+left+'s':'轮播已暂停';bar.style.width=on?((30-left)/30*100)+'%':'0';}
 function tick(){if(!on)return;left--;if(left<=0){sessionStorage.setItem('screenLoop','1');location.href=LIST[(idx+1)%LIST.length]+'.html';return;}paint();}
