@@ -464,6 +464,7 @@
       var ff = r.closest('.filter');
       $$('input.inp', ff).forEach(function (i) { if (i.type !== 'date') i.value = ''; });
       $$('select.inp', ff).forEach(function (s) { s.selectedIndex = 0; s.removeAttribute('data-dirty'); });
+      $$('input[type="checkbox"], input[type="radio"]', ff).forEach(function (i) { i.checked = i.defaultChecked; });
       applyFilter(filterScope(r), [], []);
       toast('筛选条件已重置');
     }
@@ -594,10 +595,19 @@
     var tbl = tableOf(el);
     if (tbl) {
       var hs = headersOf(tbl).filter(Boolean).filter(function (h) { return !/操作/.test(h); });
+      var carry = [];
       var rows = $$('tbody tr', tbl).filter(function (r) { return !r.classList.contains('hide') && !$('.empty', r); }).map(function (r) {
-        return $$('td', r).filter(function (td) { return !td.classList.contains('ck'); }).map(txtOf).slice(0, hs.length);
+        var tds = $$('td', r).filter(function (td) { return !td.classList.contains('ck'); }), out = [], k = 0;
+        for (var ci = 0; ci < hs.length; ci++) {
+          if (carry[ci] && carry[ci].n > 0) { out.push(carry[ci].v); carry[ci].n--; continue; }
+          var td = tds[k++]; if (!td) { out.push(''); continue; }
+          var v = txtOf(td), rs = +td.getAttribute('rowspan') || 1;
+          out.push(v); carry[ci] = { v: v, n: rs - 1 };
+        }
+        return out;
       });
-      return { name: txtOf($('h3', tbl.closest('.sec') || document) || $('.hero-t h1')) || pageTitle(), head: hs, rows: rows };
+      var paper = tbl.closest('.rpaper');
+      return { name: paper ? txtOf($('.rtitle', paper)) : txtOf($('h3', tbl.closest('.sec') || document) || $('.hero-t h1')) || pageTitle(), head: hs, rows: rows };
     }
     var docs = $$('.doc'); if (docs.length) return { name: pageTitle(), head: ['单号', '说明', '状态', '明细'], rows: docs.map(function (d) { return [txtOf($('.dh b', d)), txtOf($('.dh .c span', d)), txtOf($('.tag', d)), $$('.kvs span', d).map(txtOf).join('；')]; }) };
     var rws = $$('.rw'); if (rws.length) return { name: pageTitle(), head: ['名称', '说明', '数值', '状态'], rows: rws.map(function (r) { return [txtOf($('.c b', r)), txtOf($('.c span', r)), txtOf($('.r', r)), txtOf($('.tag', r))]; }) };
@@ -636,6 +646,7 @@
     return 'pc/common/';
   }
   function printFor(el) {
+    if (el.closest('.rtool')) { toast('已调起打印预览', 'ok'); setTimeout(function () { try { window.print(); } catch (e) { } }, 300); return; }
     var row = rowOf(el);
     var ctx = (row ? txtOf(row) + ' ' : '') + pageTitle() + ' ' + document.title;
     for (var i = 0; i < PRINT_MAP.length; i++) if (PRINT_MAP[i][0].test(ctx)) { toast('正在打开打印模板…'); go(commonDir() + PRINT_MAP[i][1] + '.html', 300); return; }
@@ -731,6 +742,26 @@
     ctx.bezierCurveTo(w * .55, y - 26, w * .6, y + 18, w * .7, y); ctx.stroke();
     var ph = pad.querySelector('.ph, span'); if (ph) ph.style.display = 'none'; pad.dataset.has = '1';
   }
+  function clearSignPad(pad) {
+    if (!pad || pad.dataset.signed) return;
+    var cv = pad.querySelector('canvas'); if (!cv) return;
+    var ctx = cv.getContext('2d'), r = pad.getBoundingClientRect();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    ctx.scale(2, 2);
+    ctx.lineWidth = 2.2; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#123';
+    delete pad.dataset.has;
+    var ph = pad.querySelector('.ph, span');
+    if (ph) { ph.style.display = ''; }
+  }
+  document.addEventListener('click', function (e) {
+    var clr = e.target.closest('[data-sign-clear]');
+    if (!clr) return;
+    e.preventDefault();
+    var box = clr.closest('.signbox, .blk, .panel, .mform, .mbody');
+    var pad = box && (box.querySelector('.signpad:not([data-signed])') || box.querySelector('.sign:not([data-signed])'));
+    if (pad) { clearSignPad(pad); toast('已清除签名', 'ok'); }
+  });
   function initScale() {
     $$('.scale .v').forEach(function (v) {
       var base = parseFloat(v.textContent) || 18.6;
@@ -1143,6 +1174,7 @@
     if (/称重|读数|采集重量|重新称重|去皮/.test(txt)) { e.preventDefault(); doWeigh(el); return; }
 
     /* 导出 / 打印 */
+    if (/PDF/.test(txt) && el.closest('.rtool')) { e.preventDefault(); toast('请在打印窗口中选择「另存为 PDF」', 'ok'); setTimeout(function () { try { window.print(); } catch (er) { } }, 300); return; }
     if (/导出|下载/.test(txt)) { e.preventDefault(); if (real && /导出任务|导出中心/.test(txt)) { location.href = href; return; } if (/模板/.test(txt)) { toast('模板「' + txt.replace(/下载/, '') + '」已开始下载', 'ok'); exportCSV(el); return; } busy(el, '导出中', 600, function () { exportCSV(el); }); return; }
     if (/打印|制牌|打印标签|重打/.test(txt)) { if (real) return; e.preventDefault(); printFor(el); return; }
 

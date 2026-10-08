@@ -558,6 +558,65 @@ body.print{background:#F1F4F7;min-width:0}
 .mini-stat{display:flex;flex-direction:column;gap:2px}
 .mini-stat b{font-family:var(--num);font-size:20px;color:var(--t-title)}
 .mini-stat span{font-size:12px;color:var(--t-muted)}
+
+/* ===== 报表打印预览（参照原系统 ureport 预览样式） ===== */
+.rview{background:#fff;border:1px solid var(--l-card);border-radius:var(--r-xl);overflow:hidden}
+.rtool{display:flex;align-items:center;justify-content:center;gap:4px;height:36px;background:#F7F8FA;border-bottom:1px solid #E3E6EB;position:relative}
+.rtool .rti{display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 8px;border-radius:3px;font-size:12px;color:#5D6C7B}
+.rtool .rti:hover{background:#E9EDF3;color:#1C1E21}
+.rtool .rti svg{color:#C0392B}
+.rtool .rti.pdf svg{color:#E8590C}
+.rtool .rti.xls svg{color:#1E8449}
+.rtool .rpg{position:absolute;right:14px;font-size:12px;color:#8A94A3}
+.filter.rparam{border:0;border-bottom:1px dashed #E3E6EB;border-radius:0;padding:12px 18px;align-items:flex-start;gap:20px}
+.rparam .rfs{flex:1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px 18px;min-width:0}
+.rparam .rf{display:flex;align-items:center;gap:8px;min-width:0}
+.rparam .rf>label{flex:none;width:84px;text-align:right;font-size:13px;color:#333;white-space:nowrap}
+.rparam .rf-c{grid-column:span 2}
+.rparam .rf .inp{flex:1;min-width:0;height:28px;border-radius:2px;border:1px solid #CCD2DA;font-size:13px;padding:0 8px}
+.rparam .rdate{flex:1;min-width:0;display:flex}
+.rparam .rdate .inp{width:100%}
+.rparam .rf-c .rchk{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px;color:#333}
+.rparam .rchk label{display:inline-flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap}
+.rparam .rchk input{margin:0;accent-color:#337AB7}
+.rparam .f-act{display:flex;gap:28px;padding-top:0}
+.rparam .b-search,.rparam .b-reset{height:28px;min-width:56px;padding:0 14px;border-radius:3px;border:0;color:#fff;font-size:13px;cursor:pointer}
+.rparam .b-search{background:#337AB7}
+.rparam .b-search:hover{background:#286090}
+.rparam .b-reset{background:#F0AD4E}
+.rparam .b-reset:hover{background:#EC971F}
+.rpaper{padding:22px 24px 30px;font-family:"SimSun","Songti SC","STSong","宋体",serif;color:#222}
+.rtitle{text-align:center;font-size:24px;line-height:34px;font-weight:400;letter-spacing:1px;margin:4px 0 6px;color:#111;font-family:inherit}
+.rtitle2{text-align:center;font-size:18px;font-weight:400;margin:26px 0 4px;color:#111;font-family:inherit}
+.rpaper .rmeta{display:flex;justify-content:space-between;width:fit-content;min-width:min(760px,100%);margin:0 auto 4px;font-size:12px;color:#333}
+.rsheet{overflow-x:auto;text-align:center}
+.rsheet table.rtbl{display:inline-table;min-width:min(760px,100%);border-collapse:collapse;font-size:12.5px;font-family:inherit;text-align:center;margin:0 auto}
+.rsheet table.rtbl th,.rsheet table.rtbl td{border:1px solid #444;padding:4px 10px;height:24px;line-height:18px;text-align:center;color:#222;white-space:nowrap;background:#fff;border-radius:0;font-weight:400}
+.rsheet table.rtbl.wide th,.rsheet table.rtbl.wide td{padding:3px 5px;font-size:12px}
+.rpaper .rmeta{max-width:100%}
+.rsheet table.rtbl thead th{background:#5BC0DE;color:#111;height:26px;font-size:13px;border-radius:0}
+.rsheet table.rtbl thead th:first-child,.rsheet table.rtbl thead th:last-child{border-radius:0}
+.rsheet table.rtbl tbody tr:hover td{background:#F5FBFE}
+.rsheet table.rtbl td.rn{font-family:inherit}
+.rsheet table.rtbl tfoot td{background:#FAFAFA;font-weight:700;border-top:1px solid #444}
+.rsheet table.rtbl td[rowspan]{vertical-align:middle}
+.rsheet .rlink{color:#337AB7}
+.rsheet .rlink:hover{text-decoration:underline}
+.rsheet .rt.t-e{color:#C0392B}.rsheet .rt.t-w{color:#B9770E}
+.rsheet .rsub{font-size:11px;color:#777}
+.rsheet .tag{background:none;border:0;padding:0;color:inherit;font-size:inherit;height:auto}
+.rnotes{width:fit-content;max-width:min(980px,100%);margin:12px auto 0;font-family:var(--font,sans-serif)}
+.rnotes .note{margin-top:8px}
+.rsigns{display:flex;justify-content:center;gap:90px;margin:22px auto 0;font-size:13px;color:#222}
+.rsigns i{display:inline-block;width:110px;border-bottom:1px solid #666;vertical-align:-2px}
+.rsigns b{font-weight:400;color:#337AB7}
+@media print{
+  .topbar,.side,.foot,.pbar,.rtool,.rparam,.rnotes{display:none!important}
+  .shell,.work{display:block;padding:0;margin:0}
+  .rview{border:0}
+  .rpaper{padding:0}
+  .rsheet table.rtbl thead th{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
 </style></head>
 <body>
 <header class="topbar">
@@ -679,7 +738,7 @@ save();})();</script></aside>
       
     </table></div><div class="pager" data-total="24" data-per="10"><span>共 <b class="ptotal">24</b> 条 · 每页 10 条</span>
     <div class="pages"><a class="pg prev" href="#"><span class="ico i16"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4.5L7 12l7.5 7.5"/></svg></span></a><a class="pg on" href="#">1</a><a class="pg" href="#">2</a><a class="pg" href="#">3</a><a class="pg next" href="#"><span class="ico i16"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 4.5l7.5 7.5-7.5 7.5"/></svg></span></a></div></div></div></div>
-<div class="panel"><div class="fgrp"><div class="gt">反馈处理（示例表单）</div>
+<div class="panel"><div class="fgrp"><div class="gt">反馈处理</div>
     <div class="grid c2"><div class="fld"><label>问题单号</label><div style="padding-top:7px;font-size:13px;color:#1C1E21">暂无待反馈问题</div></div><div class="fld"><label class="req">处理态度</label><div style="padding-top:7px" data-req="1"><label class="radio on"><i></i>接受处罚</label><label class="radio"><i></i>部分接受</label><label class="radio"><i></i>不接受（提交申诉）</label></div></div><div class="fld full"><label class="req">原因分析</label><textarea class="inp" data-req="1"></textarea></div><div class="fld full"><label class="req">整改措施</label><textarea class="inp" data-req="1"></textarea></div><div class="fld"><label class="">整改完成期限</label><input class="inp" type="date" value="2026-09-25"></div><div class="fld"><label class="">佐证材料</label><div class="upload" data-req="1"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.2V8.8"/><path d="M7.6 13l4.4-4.4L16.4 13"/><path d="M4 5.5V3.8h16v1.7"/></svg></span><span>上传整改照片或说明</span></div></div></div></div><div class="footbar"><span class="left">需在推送后 2 小时内反馈，逾期计入考评扣分并升级提醒</span>
     <a class="btn b-def" href="dashboard.html">返回工作台</a><a class="btn b-pri" href="#">提交反馈</a></div></div></main>
 </div>
